@@ -1,0 +1,56 @@
+E=.exe
+CC=gcc
+LD=gcc
+CFLAGS+=-m32
+LDFLAGS+=-m32
+
+emu=ik-emu$E
+dev=ik-dev$E
+ctl=ik-ctl$E
+
+emuofiles= \
+  emu.o \
+  emu_windows.o \
+  time_windows.o \
+  u.o
+
+devofiles= \
+  dev.o \
+  dev_windows.o \
+  time_windows.o \
+  u.o
+
+bindistfiles=${ctl} ${dev} ${emu}
+
+all: ${emu} ${dev} ${ctl}
+
+dev.o: a.h
+dev_windows.o: a.h
+emu.o: a.h
+emu_windows.o: a.h
+time_windows.o: a.h
+u.o: a.h
+
+emulibs=-lwinmm -lkernel32
+devlibs=-lwinmm -lkernel32
+
+${ctl}: ctl.tcl
+	@if [ ! -f tclkit$E ]; then \
+		echo fetching tclkit$E; \
+		curl -# -L -k http://tclkit.googlecode.com/files/tclkit-8.5.9-win32.upx.exe >tclkit$E; \
+	fi
+	@if [ ! -f sdx.kit ]; then \
+		echo fetching sdx.kit; \
+		curl -# -L -k http://tclkit.googlecode.com/files/sdx-20100310.kit >sdx.kit; \
+	fi
+	mkdir -p ik-ctl.vfs
+	cp ctl.tcl ik-ctl.vfs/main.tcl
+	tclkitsh sdx.kit wrap ${ctl} -runtime tclkit$E >/dev/null
+
+# ctl binary must not be stripped because that will also remove the VFS.
+strip:
+	strip ${emu} ${dev}
+
+bindist:
+	zip ik-${ver}-win.zip ${bindistfiles}
+	tar -c ${bindistfiles} | gzip >ik-${ver}-win.tar.gz

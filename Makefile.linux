@@ -1,0 +1,34 @@
+LD=${CC}
+
+dev=ik-dev
+emu=ik-emu
+
+devofiles= \
+  dev.o \
+  dev_unix.o \
+  time_unix.o \
+  u.o
+
+emuofiles= \
+  emu.o \
+  emu_unix.o \
+  time_unix.o \
+  u.o
+
+bindistfiles=${dev} ${emu}
+
+all: ${dev} ${emu}
+
+dev.o: a.h
+dev_unix.o: a.h
+emu.o: a.h
+emu_unix.o: a.h
+time_unix.o: a.h
+u.o: a.h
+
+emulibs=-lc -lm
+devlibs=-lc -lm
+
+strip:
+	strip ${emu} ${dev}
+
